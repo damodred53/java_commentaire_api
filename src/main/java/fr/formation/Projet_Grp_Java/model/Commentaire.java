@@ -1,5 +1,7 @@
 package fr.formation.Projet_Grp_Java.model;
 
+import java.util.UUID;
+
 import org.hibernate.annotations.UuidGenerator;
 
 import jakarta.persistence.Entity;
@@ -22,12 +24,14 @@ public class Commentaire {
     private int qualiteProduit;
     private int rapportQualitePrix;
     private int faciliteUtilisation;
+    private String produitNom;
+    private UUID produitId;
 
     @Transient
     private double noteMoyenne;
 
-    @ManyToOne
-    private Produit produit;
+    // @ManyToOne
+    // private Produit produit;
 
     public double getNoteMoyenne() {
         return (qualiteProduit + rapportQualitePrix + faciliteUtilisation) / 3.0;

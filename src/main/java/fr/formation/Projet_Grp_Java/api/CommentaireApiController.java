@@ -7,10 +7,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import fr.formation.Projet_Grp_Java.feignclient.ProduitFeignClient;
 import fr.formation.Projet_Grp_Java.model.Commentaire;
-import fr.formation.Projet_Grp_Java.model.Produit;
 import fr.formation.Projet_Grp_Java.repo.CommentaireRepository;
-import fr.formation.Projet_Grp_Java.repo.ProduitRepository;
 import fr.formation.Projet_Grp_Java.request.CreateCommentaireRequest;
 import lombok.RequiredArgsConstructor;
 
@@ -20,38 +19,43 @@ import lombok.RequiredArgsConstructor;
 public class CommentaireApiController {
 
     private final CommentaireRepository commentaireRepository;
-    private final ProduitRepository produitRepository;
+    private final ProduitFeignClient produitFeignClient;
 
-    @GetMapping("/note/by-produit-id/{produitId}")
-    public List<Commentaire> getCommentairesByProduit(@PathVariable String produitId) {
+    // @GetMapping("/note/by-produit-id/{produitId}")
+    // public List<Commentaire> getCommentairesByProduit(@PathVariable String
+    // produitId) {
+    // UUID uuid = UUID.fromString(produitId);
+    // return commentaireRepository.findAllByProduitId(uuid);
+    // }
+
+    @GetMapping("/produit/{produitId}")
+    public List<Commentaire> getCommentairesByProduitId(@PathVariable String produitId) {
         UUID uuid = UUID.fromString(produitId);
         return commentaireRepository.findAllByProduitId(uuid);
     }
 
-    // @GetMapping("/note/by-produit-id/{produitId}")
-    // public int getNoteByProduitId(@PathVariable String produitId) {
-    // UUID uuid = UUID.fromString(produitId);
-    // List<Commentaire> commentaires =
-    // commentaireRepository.findAllByProduitId(uuid);
-
-    // return (int) commentaires.stream()
-    // .mapToInt(Commentaire::getNote)
-    // .average()
-    // .orElse(-1);
-    // }
+    @GetMapping("/produit/nom/{nom}")
+    public List<Commentaire> getCommentairesByProduitNom(@PathVariable String nom) {
+        return commentaireRepository.findAllByProduitNom(nom);
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public String createCommentaire(@RequestBody CreateCommentaireRequest request) {
-        Produit produit = produitRepository.findById(UUID.fromString(request.getProduitId()))
-                .orElseThrow(() -> new IllegalArgumentException("Produit non trouvé"));
+
+        String produitNom = produitFeignClient.getNameById(request.getProduitId());
 
         Commentaire commentaire = new Commentaire();
-        BeanUtils.copyProperties(request, commentaire);
 
-        commentaire.setProduit(produit);
+        commentaire.setProduitNom(produitNom);
+        commentaire.setTexte(request.getTexte());
+        commentaire.setQualiteProduit(request.getQualiteProduit());
+        commentaire.setRapportQualitePrix(request.getRapportQualitePrix());
+        commentaire.setFaciliteUtilisation(request.getFaciliteUtilisation());
 
         commentaireRepository.save(commentaire);
+
         return commentaire.getId();
     }
+
 }
