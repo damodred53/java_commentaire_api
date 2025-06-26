@@ -3,7 +3,6 @@ package fr.formation.Projet_Grp_Java.api;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,41 +20,39 @@ public class CommentaireApiController {
     private final CommentaireRepository commentaireRepository;
     private final ProduitFeignClient produitFeignClient;
 
-    // @GetMapping("/note/by-produit-id/{produitId}")
-    // public List<Commentaire> getCommentairesByProduit(@PathVariable String
-    // produitId) {
-    // UUID uuid = UUID.fromString(produitId);
-    // return commentaireRepository.findAllByProduitId(uuid);
-    // }
-
+    // Méthode pour récupérer des commentaires par produit ID
     @GetMapping("/produit/{produitId}")
     public List<Commentaire> getCommentairesByProduitId(@PathVariable String produitId) {
         UUID uuid = UUID.fromString(produitId);
         return commentaireRepository.findAllByProduitId(uuid);
     }
 
+    // Méthode pour récupérer des commentaires par nom de produit
     @GetMapping("/produit/nom/{nom}")
     public List<Commentaire> getCommentairesByProduitNom(@PathVariable String nom) {
         return commentaireRepository.findAllByProduitNom(nom);
     }
 
+    // Méthode pour créer un commentaire
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public String createCommentaire(@RequestBody CreateCommentaireRequest request) {
 
+        // Appel à l'API produit pour récupérer le nom (fallback géré ici)
         String produitNom = produitFeignClient.getNameById(request.getProduitId());
 
+        // Création du commentaire
         Commentaire commentaire = new Commentaire();
-
-        commentaire.setProduitNom(produitNom);
+        commentaire.setProduitNom(produitNom); // Utilise le produitNom récupéré
         commentaire.setTexte(request.getTexte());
         commentaire.setQualiteProduit(request.getQualiteProduit());
         commentaire.setRapportQualitePrix(request.getRapportQualitePrix());
         commentaire.setFaciliteUtilisation(request.getFaciliteUtilisation());
 
+        // Sauvegarde du commentaire dans le repository
         commentaireRepository.save(commentaire);
 
+        // Retourne l'ID du commentaire créé
         return commentaire.getId();
     }
-
 }
